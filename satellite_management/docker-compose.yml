@@ -1,0 +1,42 @@
+# docker-compose.yml
+version: '3'
+
+volumes:
+  productdb_vol:
+
+networks:
+  micro_network:
+    driver: bridge
+    external:
+      name: micro_network
+
+services:
+  sat-api:
+    container_name: csat-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - 5002:5002
+    volumes:
+    - .:/satapp
+    links:
+      - sat-db
+    depends_on:
+      - sat-db
+    networks:
+      - micro_network
+    restart: always
+
+  sat-db:
+    container_name: csat_dbase
+    image: mysql:5.7
+    ports:
+    - 32009:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: pfm_dc_2020
+      MYSQL_DATABASE: product
+      MYSQL_USER: cloudacademy
+      MYSQL_PASSWORD: pfm_2020
+    networks:
+      - micro_network

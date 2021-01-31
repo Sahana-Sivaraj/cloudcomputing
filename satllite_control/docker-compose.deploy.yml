@@ -1,0 +1,78 @@
+# docker-compose.deploy.yml
+version: '3.8'
+
+volumes:
+  userdb_vol:
+  satdb_vol:
+
+networks:
+  micro_network:
+    external:
+      name: micro_network
+
+services:
+  sat-api:
+    container_name: csat-service
+    build:
+      context: ../satellite_management
+    ports:
+      - 5002:5002
+    links:
+      - sat-db
+    depends_on:
+      - sat-db
+    networks:
+      - micro_network
+    restart: always
+
+  sat-db:
+    container_name: csat_dbase
+    image: mysql:5.7
+    ports:
+    - 32009:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: pfm_dc_2020
+      MYSQL_DATABASE: product
+      MYSQL_USER: cloudacademy
+      MYSQL_PASSWORD: pfm_2020
+    networks:
+      - micro_network
+    volumes:
+    - satdb_vol:/var/lib/mysql
+
+  user-api:
+    container_name: cuser-service
+    build:
+      context: ../satellite_user_management
+    ports:
+    - "5001:5001"
+    depends_on:
+      - user-db
+    networks:
+      - micro_network
+    restart: always
+
+  user-db:
+    container_name: cuser_dbase
+    image: mysql:5.7
+    ports:
+    - "32000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: pfm_dc_2020
+      MYSQL_DATABASE: user
+      MYSQL_USER: cloudacademy
+      MYSQL_PASSWORD: pfm_2020
+    networks:
+      - micro_network
+    volumes:
+    - userdb_vol:/var/lib/mysql
+
+  frontend-app:
+    container_name: cfrontend-application_user
+    build:
+      context: .
+    ports:
+    - "5000:5000"
+    networks:
+      - micro_network
+    restart: always
